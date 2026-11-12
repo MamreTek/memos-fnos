@@ -1,0 +1,117 @@
+#!/bin/bash
+# Shared lifecycle helpers; this file is never used as a configuration source.
+set -euo pipefail
+readonly CONTAINER=memos-fnos-memos
+
+fail() {
+    printf '%s\n' "$*" >&2
+    if [[ -n "${TRIM_TEMP_LOGFILE:-}" ]]; then
+        printf '%s\n' "$*" > "$TRIM_TEMP_LOGFILE" || true
+    fi
+    exit 1
+}
+
+require_tools() {
+    local tool
+    for tool in docker timeout realpath stat awk tar sha256sum flock mktemp; do
+        command -v "$tool" >/dev/null || fail "缺少系统工具：$tool。请检查 fnOS/Docker 环境。"
+    done
+}
+
+require_docker() {
+    timeout 10 docker info --format '{{.ServerVersion}}' >/dev/null 2>&1 ||
+        fail 'Docker 不可用或无访问权限，请在应用中心启用 Docker 后重试。'
+}
+
+container_record() {
+    timeout 10 docker inspect --format '{{.State.Status}}|{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}|{{index .Config.Labels "com.docker.compose.project"}}|{{index .Config.Labels "com.docker.compose.service"}}|{{.Config.Image}}' "$CONTAINER" 2>/dev/null
+}
+
+read_container() {
+    local record
+    C_STATE=missing C_HEALTH=none C_PROJECT= C_SERVICE= C_IMAGE=
+    if record=$(container_record); then
+        IFS='|' read -r C_STATE C_HEALTH C_PROJECT C_SERVICE C_IMAGE <<< "$record"
+        [[ "$C_PROJECT" == memos-fnos && "$C_SERVICE" == memos ]] ||
+            fail '容器名称 memos-fnos-memos 已被其他项目占用；未修改该容器。'
+    else
+        # Distinguish a missing container from a failed daemon/query.
+        local names
+        names=$(timeout 10 docker ps -a --format '{{.Names}}') || fail '无法查询 Docker 容器状态。'
+        [[ $'\n'"$names"$'\n' != *$'\n'"$CONTAINER"$'\n'* ]] || fail '无法检查 Memos 容器，操作已中止。'
+    fi
+}
+
+require_stopped() {
+    read_container
+    case "$C_STATE" in
+        missing|created|exited|dead) ;;
+        *) fail '请先在应用中心停止 Memos，再执行升级或备份。' ;;
+    esac
+}
+
+validate_share() {
+    local supplied=${TRIM_DATA_SHARE_PATHS:-}
+    [[ "$supplied" == /* && "$supplied" != *:* && "$supplied" != *$'\n'* ]] ||
+        fail '应用共享路径无效；需要一个绝对路径，不能包含多个共享目录。'
+    SHARE=$(realpath -e -- "$supplied") || fail '应用共享目录不存在。'
+    [[ -d "$SHARE" && "${SHARE##*/}" == memos-fnos ]] || fail '共享目录必须是本应用的 memos-fnos 目录。'
+    [[ ! -L "$SHARE/data" && ! -L "$SHARE/backups" && ! -L "$SHARE/.lifecycle.lock" ]] ||
+        fail '数据、备份或锁路径不能是符号链接。'
+    [[ -w "$SHARE" && -x "$SHARE" ]] || fail '应用共享目录不可写，请检查应用 ACL 授权。'
+}
+
+prepare_data() {
+    validate_share
+    local numeric_id
+    for numeric_id in "${TRIM_UID:-}" "${TRIM_GID:-}"; do
+        [[ "$numeric_id" =~ ^[1-9][0-9]{0,9}$ ]] || fail '缺少有效的非 root 应用 UID/GID。'
+    done
+    umask 077
+    mkdir -p -- "$SHARE/data" "$SHARE/backups"
+    [[ -d "$SHARE/data" && -w "$SHARE/data" && -x "$SHARE/data" && -w "$SHARE/backups" ]] ||
+        fail '数据或备份目录不可写，请检查权限；现有数据未修改。'
+    [[ "$(stat -c %u -- "$SHARE/data")" == "$TRIM_UID" ]] ||
+        fail '数据目录所有者与应用 UID 不一致；请恢复正确的应用所有权与 ACL 后重试。'
+}
+
+check_port() {
+    # fnOS checkport and Docker's bind are authoritative; also catch normal listeners early.
+    if ! awk '$4 == "0A" && toupper($2) ~ /:146E$/ {busy=1} END {exit busy ? 1 : 0}' /proc/net/tcp /proc/net/tcp6; then
+        fail '端口 5230 已被占用，请先解决端口冲突；未停止其他服务。'
+    fi
+}
+
+preflight() {
+    require_tools
+    case "$(uname -m)" in x86_64|aarch64|arm64) ;; *) fail '仅支持 x86_64 和 ARM64。' ;; esac
+    require_docker
+    require_stopped
+    check_port
+}
+
+backup_data() (
+    require_tools
+    require_docker
+    prepare_data
+    exec 9>"$SHARE/.lifecycle.lock"
+    flock -n 9 || fail '另一个生命周期操作正在进行，请稍后重试。'
+    require_stopped
+    umask 077
+    local staging destination
+    staging=$(mktemp -d "$SHARE/backups/.pending.XXXXXX") || fail '无法创建备份目录，请检查可用空间。'
+    trap 'rm -rf -- "$staging"' EXIT
+    tar -czf "$staging/data.tar.gz" -C "$SHARE" data || fail '数据备份失败，升级已中止；原数据保留。'
+    printf 'format=1\npackage_version=%s\nimage=%s\ncreated_utc=%s\n' \
+        "${TRIM_OLD_APPVER:-${TRIM_APPVER:-unknown}}" "${C_IMAGE:-not-created}" "$(date -u +%FT%TZ)" > "$staging/metadata.txt"
+    tar -tzf "$staging/data.tar.gz" >/dev/null || fail '备份归档校验失败，升级已中止。'
+    (cd "$staging" && sha256sum data.tar.gz metadata.txt > SHA256SUMS && sha256sum -c SHA256SUMS >/dev/null) ||
+        fail '备份校验和验证失败，升级已中止。'
+    # Recheck before committing the snapshot; never approve an upgrade during a restart.
+    require_stopped
+    destination="$SHARE/backups/upgrade-$(date -u +%Y%m%dT%H%M%SZ)-${staging##*.pending.}"
+    [[ ! -e "$destination" ]] || fail '备份目录冲突，未覆盖已有备份。'
+    mv -T -- "$staging" "$destination"
+    trap - EXIT
+    printf '备份已完成：%s\n' "$destination"
+)

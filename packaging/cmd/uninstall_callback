@@ -1,0 +1,4 @@
+#!/bin/bash
+set -eu
+# Intentionally no data removal, volume prune, or image cleanup.
+exit 0

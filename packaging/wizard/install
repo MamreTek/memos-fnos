@@ -1,0 +1,7 @@
+[
+  {"stepTitle": "安装 Memos", "items": [
+    {"type": "tips", "helpText": "本候选包使用现有 Docker，首次启动需联网拉取固定版本镜像。服务端口为 5230；请先确认端口未被占用。"},
+    {"type": "tips", "helpText": "笔记及附件保存在应用共享目录 memos-fnos/data，升级前备份保存在 memos-fnos/backups。安装完成后，从桌面打开 Memos 创建首个管理员账号。"},
+    {"type": "tips", "helpText": "Android Moe Memos 2.1.0 已声明支持本服务端；iOS 2.0.7 的本版本同步兼容性待验。fnOS x86_64 / ARM64 实机验证尚未完成。"}
+  ]}
+]

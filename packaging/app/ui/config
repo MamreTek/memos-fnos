@@ -1,0 +1,8 @@
+{
+  ".url": {
+    "memos-fnos.main": {
+      "title": "Memos", "icon": "images/icon_{0}.png",
+      "type": "url", "protocol": "http", "port": "5230", "url": "/", "allUsers": true
+    }
+  }
+}

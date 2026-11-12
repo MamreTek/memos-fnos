@@ -1,0 +1,5 @@
+{
+  "defaults": {"run-as": "package"},
+  "username": "memos-fnos",
+  "groupname": "memos-fnos"
+}

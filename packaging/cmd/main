@@ -1,0 +1,13 @@
+#!/bin/bash
+source "$(dirname -- "${BASH_SOURCE[0]}")/common"
+case "${1:-}" in
+    start|stop) exit 0 ;; # fnOS docker-project owns start/stop, not this script.
+    status)
+        require_tools
+        require_docker
+        read_container
+        if [[ "$C_STATE" == running && "$C_HEALTH" == healthy ]]; then exit 0; fi
+        printf 'Memos 状态：%s / %s\n' "$C_STATE" "$C_HEALTH" >&2
+        exit 3 ;;
+    *) fail '未知操作；支持 start、stop、status。' ;;
+esac

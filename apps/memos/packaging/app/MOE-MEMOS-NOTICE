@@ -1,0 +1,18 @@
+Moe Memos icon
+Upstream project: https://github.com/mudkipme/MoeMemos
+Website asset: https://memos.moe/memos.png
+Source commit: b53f6ba377c29db1af63cf0d014f50592b3a5be2
+Original source: https://github.com/mudkipme/MoeMemos/blob/b53f6ba377c29db1af63cf0d014f50592b3a5be2/MoeMemos/Assets.xcassets/AppIcon.appiconset/App_store_1024_1x.png
+Original SHA-256: 0e089ecdefc0086d1f60f39b6185a0cfb4e3a13a13e8e76a36d056069f1d7865
+
+This icon and its resized versions are made available under the Mozilla
+Public License, v. 2.0. The full license is included in MOE-MEMOS-LICENSE
+and is also available at https://mozilla.org/MPL/2.0/.
+
+Changes: resized the original 1024x1024 PNG to 64x64 and 256x256 using
+Pillow 12.2.0 and Image.Resampling.LANCZOS. No redraw or color changes.
+The original asset, provenance and resized PNG sources are available in
+https://github.com/cedarot/fn-apps under apps/memos/assets/ and
+apps/memos/packaging/. Server and packaging licenses remain separate.
+
+This third-party fnOS package is not an official Moe Memos release.

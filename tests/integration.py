@@ -89,7 +89,8 @@ def main():
 
             token = login()
             # Check malformed/injection credentials cannot authenticate.
-            api('POST', '/api/auth/signin', {'passwordCredentials': {'username': "' OR 1=1 --", 'password': password}}, expected=401)
+            rejected = api('POST', '/api/auth/signin', {'passwordCredentials': {'username': "' OR 1=1 --", 'password': password}}, expected=400)
+            assert rejected['code'] == 3 and 'accessToken' not in rejected  # Upstream INVALID_ARGUMENT contract.
             content = '持久化检查 #integration\n<script>window.WRAPPER_XSS=1</script>'
             memo = api('POST', '/api/memos', {'content': content, 'visibility': 'PRIVATE'}, token)
             payload = (ROOT / 'packaging/ICON.PNG').read_bytes()

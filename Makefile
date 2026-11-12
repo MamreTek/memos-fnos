@@ -1,16 +1,9 @@
-PYTHON ?= python3
-FNPACK ?= .cache/fnpack
+APP ?= memos
+
+ifneq ($(APP),memos)
+$(error Unknown APP '$(APP)'; available applications: memos)
+endif
 
 .PHONY: check test integration package tools verify-image
-check:
-	$(PYTHON) scripts/check.py
-test:
-	$(PYTHON) -m unittest discover -s tests -p 'test_*.py' -v
-integration:
-	$(PYTHON) tests/integration.py
-tools:
-	$(PYTHON) scripts/fetch_fnpack.py
-verify-image:
-	$(PYTHON) scripts/verify_image.py
-package: check
-	$(PYTHON) scripts/package.py --fnpack "$(FNPACK)"
+check test integration package tools verify-image:
+	$(MAKE) --no-print-directory -C apps/$(APP) $@

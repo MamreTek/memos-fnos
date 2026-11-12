@@ -1,47 +1,42 @@
-# Memos for fnOS
+# fn-apps
 
-为飞牛 NAS 提供 Memos 的 Docker 应用包：应用中心启停和状态、桌面浏览器入口、笔记与附件持久化、升级前备份。
+飞牛 fnOS 第三方应用封装仓库。每个应用在 `apps/<app>/` 下独立维护源码、打包配置、测试与使用说明。
 
-**当前为 0.1.0 候选包，fnOS 实机兼容性尚未验收。** 一个 `platform=all` 安装包使用官方 amd64/arm64 镜像；ARM64 容器模拟测试不能代替 ARM64 fnOS 实机测试。
+| 应用 | 目录与说明 | 当前状态 |
+|---|---|---|
+| Memos | [apps/memos](apps/memos/) | Docker 通用候选包；amd64 / ARM64 镜像与容器测试通过，fnOS 实机待验 |
 
-## 安装
+## 构建与验证
 
-1. 在目标飞牛 NAS 安装并启动 Docker，确认 TCP `5230` 空闲。
-2. 从本项目 PR 的 CI 产物获取 `memos-fnos-0.1.0-all.fpk` 及同名 `.sha256`，验证校验和。
-3. 在「应用中心 → 设置 → 手动安装」选择 `.fpk`。首次启动会拉取固定镜像，NAS 需要能访问 Docker Hub。
-4. 应用显示运行后，点击 Memos 桌面图标；或访问 `http://<NAS-IP>:5230`。创建首个管理员账号，再配置注册及笔记可见性。
-
-数据在飞牛文件管理的应用共享目录 `memos-fnos/data`，备份在 `memos-fnos/backups`。实际磁盘路径由系统提供，不限定存储卷。默认卸载保留数据；目标 fnOS 的共享目录保留行为仍待实机验证，卸载前请另存备份。
-
-## 手机连接
-
-手机安装 [Moe Memos](https://memos.moe/)，服务地址填写 `http://<NAS-IP>:5230`，使用当前客户端支持的 Memos 登录方式。先在同一局域网完成同步。
-
-本包固定 **Memos 26.11.0** 及多架构索引 digest，不自动更新。Android **2.1.0** 的发行说明已声明支持 26.10/26.11；iOS **2.0.7** 仅声明支持至 0.31.0，不能保证与本候选包同步。iOS 的新版/实际商店版本需另行验证；浏览器可直接使用 Memos。
-
-本项目未设置公网访问、FN Connect、域名或 TLS；NAS 登录不会替代 Memos 自身账号认证。
-
-## 开发与构建
-
-需要 Linux、Python 3.12+、Bash 和常见系统工具；真实集成测试需要非 root 用户访问 Docker 和 Compose v2。请使用专用测试主机，测试会占用 `5230`，并在发现同名容器时拒绝运行。
+在仓库根目录使用 `APP` 选择应用，默认是 `memos`：
 
 ```sh
-make check test
-make verify-image
-make tools
-make package
-make integration
-cd dist
-sha256sum -c memos-fnos-0.1.0-all.fpk.sha256
+make APP=memos check test
+make APP=memos verify-image
+make APP=memos tools package
+make APP=memos integration
 ```
 
-Linux amd64 构建工具由 `make tools` 从飞牛官方下载并校验固定 SHA-256；其他开发平台可用 `make package FNPACK=/absolute/path/to/fnpack` 指定官方工具。
+也可直接执行 `make -C apps/memos check test`。需要指定 fnpack 时使用绝对路径：`make APP=memos package FNPACK=/absolute/path/to/fnpack`。候选产物生成在 `apps/memos/dist/`，不会提交到 Git。
 
-`docker-compose.yaml` 使用 JSON 语法（合法 YAML），以便标准库离线检查。fnOS 的 `docker-project` 托管启停；宿主脚本使用 package 用户，容器直接使用该用户的非 root UID/GID，避免递归修改飞牛 ACL。包内不包含宿主架构相关二进制。
+真实容器测试需要可访问 Docker 的非 root 用户，使用专用测试主机。CI 负责官方打包与 amd64 / QEMU ARM64 集成测试，不自动部署或发布。
 
-CI 对 amd64 和 QEMU 模拟的 arm64 执行真实镜像集成测试，并生成候选包；不自动发布、上架或部署。详细证据与待验项见 [测试矩阵](docs/validation.md)。
+## 目录约定
 
-- [备份、恢复与排错](docs/operations.md)
-- [项目约定](docs/project-decisions.md)
-- [第三方资产与许可证](docs/third-party.md)
-- [REQ-001 / Issue #1](https://github.com/MamreTek/memos-fnos/issues/1)
+```text
+apps/
+  memos/
+    packaging/   # 飞牛安装包内容
+    scripts/     # 校验与构建
+    tests/       # 行为和容器测试
+    docs/        # 应用操作及验证记录
+    Makefile
+    README.md
+.github/workflows/ # 仓库 CI
+docs/              # 共享开发约定
+Makefile           # 应用命令分发
+```
+
+仓库从 `MamreTek/memos-fnos` 迁移至 [cedarot/fn-apps](https://github.com/cedarot/fn-apps)，原有历史、Issue #1 和 PR #2 沿用。Memos 在 NAS 上的应用 ID 仍为 `memos-fnos`，端口与数据目录沿用原约定；此次源码整理不要求迁移 NAS 数据。
+
+各应用的安装和兼容范围见对应 README。当前 Memos 仍为候选包，fnOS 实机和手机客户端同步待验收。

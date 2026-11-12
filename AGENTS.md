@@ -1,7 +1,9 @@
-# memos-fnos
+# fn-apps
 
-Follow the shared Mamre rulebook when available and the portable snapshot in docs/development-conventions.md otherwise. Resolve the global Mamre project record by origin identity. Keep requirements outside this repository and do not create a project-local .codex directory.
+Follow the shared Mamre rulebook when available and docs/development-conventions.md otherwise. Resolve the global project record by the cedarot/fn-apps origin; worktrees share that record. Requirements stay outside this repository. Do not create a project-local .codex directory.
 
-Implement only an approved requirement on its issue branch. Validate with `make check test`, `make verify-image`, official `make package`, and real-container `make integration`. If local Docker is unavailable, run the real integration job on a dedicated CI runner before marking the PR ready. Never substitute lifecycle mocks for that job or describe QEMU as fnOS hardware testing.
+Keep each application under apps/<app>/ with its own packaging, scripts, tests, documentation, and Makefile. Keep shared CI, the application index, and command dispatch at the repository root. Read the application's AGENTS.md before modifying it.
 
-Preserve existing data and ACLs; no privileged containers, global Docker changes, automatic deployment, or merges. Record exact versions and all unverified hardware/client behavior.
+Implement an approved requirement on its issue branch and submit a PR after verification. Root commands select the application with APP (default: memos); validate module commands and CI paths after structural changes. Preserve application IDs, persistent paths, and runtime behavior during repository reorganizations unless a requirement explicitly changes them.
+
+No automatic deployment, store submission, or merge. Distinguish container/QEMU checks from fnOS hardware and actual mobile-client validation.

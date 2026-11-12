@@ -17,7 +17,7 @@
 
 真实容器测试创建独立临时目录，验证首次账号、私有笔记、图片附件字节、非 root 用户、停止后再启动、容器重建、升级前备份、隔离恢复和卸载钩子保留。测试拒绝触碰已存在的同名容器。其安全断言覆盖匿名访问隔离和注入式登录失败；未改动上游 Web 界面，API 中保存 HTML 文本不构成浏览器 XSS 渲染验收。
 
-运行证据：2026-11-12，[CI 43152302689](https://github.com/MamreTek/memos-fnos/actions/runs/43152302689)，提交 `bcb15fe2dcc19ff6961d0ba43734c56283277208`，package、amd64 与 arm64 三项均通过。后续提交仍以其对应 Actions 为准。初次用例错误地预期非法凭证返回 401；核对固定版本源码后修正为 HTTP 400 / INVALID_ARGUMENT，并保留无 token 的断言，两种架构重测通过。
+运行证据：2026-11-12，[CI 43152302689](https://github.com/cedarot/fn-apps/actions/runs/43152302689)，提交 `bcb15fe2dcc19ff6961d0ba43734c56283277208`，package、amd64 与 arm64 三项均通过。后续提交仍以其对应 Actions 为准。初次用例错误地预期非法凭证返回 401；核对固定版本源码后修正为 HTTP 400 / INVALID_ARGUMENT，并保留无 token 的断言，两种架构重测通过。
 
 ## fnOS 实机记录模板
 

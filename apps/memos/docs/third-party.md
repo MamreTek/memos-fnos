@@ -2,7 +2,7 @@
 
 Memos 镜像及图标来自 [usememos/memos 26.11.0](https://github.com/usememos/memos/tree/26.11.0)，提交 `b40d8a7b573774c52b022c8d6537d6baf2129dc0`，MIT License。上游许可证随包保存在 `app/MEMOS-LICENSE`。
 
-图标来自该提交的 `web/public/android-chrome-512x512.png`，仅用 Lanczos 缩放到 64/256 像素。未重画品牌或更改上游标识。本项目是 MamreTek 的第三方封装，不是 Memos 或飞牛官方发行包。封装自身许可证位于 `app/PACKAGING-LICENSE`。
+图标来自该提交的 `web/public/android-chrome-512x512.png`，仅用 Lanczos 缩放到 64/256 像素。未重画品牌或更改上游标识。本项目是 cedarot/fn-apps 维护的第三方封装，不是 Memos 或飞牛官方发行包。封装自身许可证位于 `app/PACKAGING-LICENSE`，保留已有版权声明。
 
 fnpack 仅用于开发构建，来源 [飞牛官方 CLI](https://developer.fnnas.com/docs/cli/fnpack)。锁定 Linux amd64 1.2.3 及 SHA-256，下载来源与校验逻辑在 `scripts/fetch_fnpack.py`；不会把该二进制打进用户包。
 

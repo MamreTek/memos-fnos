@@ -8,14 +8,16 @@
 | 包元数据 / JSON / Bash / 图标 / 路径 | `make check` | 本地通过 |
 | 10 项生命周期行为 | `make test`；真实端口监听、失败保护、SQLite/附件备份恢复 | 本地通过 |
 | 官方 fnpack 1.2.3 构建 | `make package`；检查内外层每个载荷与 manifest 校验和 | 本地通过 |
-| amd64 真实 Memos | CI `make integration` | 待 CI |
-| arm64 真实 Memos / QEMU | CI `make integration` | 待 CI；不是 ARM fnOS 实机 |
+| amd64 真实 Memos | CI `make integration` | 通过，见下方运行证据 |
+| arm64 真实 Memos / QEMU | CI `make integration` | 通过；不是 ARM fnOS 实机 |
 | N150 x86_64 fnOS | 精确版本/构建号、安装、启停、桌面、NAS 重启、升级和卸载保留 | 待实机 |
 | ARM64 fnOS | 同上 | 待实机 |
 | Android Moe Memos 2.1.0 | 官方发行说明支持 26.10/26.11；双向/附件/离线同步 | 声明已核实；实际同步待验 |
 | iOS Moe Memos | 2.0.7 仅声明支持至 0.31.0 | 本包 26.11.0 待兼容验证 |
 
 真实容器测试创建独立临时目录，验证首次账号、私有笔记、图片附件字节、非 root 用户、停止后再启动、容器重建、升级前备份、隔离恢复和卸载钩子保留。测试拒绝触碰已存在的同名容器。其安全断言覆盖匿名访问隔离和注入式登录失败；未改动上游 Web 界面，API 中保存 HTML 文本不构成浏览器 XSS 渲染验收。
+
+运行证据：2026-11-12，[CI 43152302689](https://github.com/MamreTek/memos-fnos/actions/runs/43152302689)，提交 `bcb15fe2dcc19ff6961d0ba43734c56283277208`，package、amd64 与 arm64 三项均通过。后续提交仍以其对应 Actions 为准。初次用例错误地预期非法凭证返回 401；核对固定版本源码后修正为 HTTP 400 / INVALID_ARGUMENT，并保留无 token 的断言，两种架构重测通过。
 
 ## fnOS 实机记录模板
 

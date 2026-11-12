@@ -77,7 +77,9 @@ prepare_data() {
 
 check_port() {
     # fnOS checkport and Docker's bind are authoritative; also catch normal listeners early.
-    if ! awk '$4 == "0A" && toupper($2) ~ /:146E$/ {busy=1} END {exit busy ? 1 : 0}' /proc/net/tcp /proc/net/tcp6; then
+    local sockets=(/proc/net/tcp)
+    if [[ -r /proc/net/tcp6 ]]; then sockets+=(/proc/net/tcp6); fi
+    if ! awk '$4 == "0A" && toupper($2) ~ /:146E$/ {busy=1} END {exit busy ? 1 : 0}' "${sockets[@]}"; then
         fail '端口 5230 已被占用，请先解决端口冲突；未停止其他服务。'
     fi
 }

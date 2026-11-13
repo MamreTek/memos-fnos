@@ -1,0 +1,14 @@
+{
+  ".url": {
+    "memos-sso-probe.main": {
+      "title": "Memos 登录验证",
+      "icon": "images/icon_{0}.png",
+      "type": "url",
+      "protocol": "",
+      "gatewayPrefix": "/app/memos-sso-probe",
+      "gatewaySocket": "app.sock",
+      "url": "/app/memos-sso-probe",
+      "allUsers": true
+    }
+  }
+}

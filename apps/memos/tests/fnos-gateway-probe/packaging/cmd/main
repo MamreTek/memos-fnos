@@ -1,0 +1,17 @@
+#!/bin/bash
+set -u
+case "$(uname -m)" in
+    x86_64) architecture=amd64 ;;
+    aarch64|arm64) architecture=arm64 ;;
+    *)
+        if [ -n "${TRIM_TEMP_LOGFILE:-}" ]; then
+            printf '%s\n' 'E_ARCH：验证包只支持 x86_64 / ARM64。' > "$TRIM_TEMP_LOGFILE"
+        fi
+        exit 1 ;;
+esac
+"${TRIM_APPDEST:?}/bin/probe-${architecture}" "${1:-}"
+result=$?
+if [ "$result" -ne 0 ] && [ "${1:-}" != status ] && [ -n "${TRIM_TEMP_LOGFILE:-}" ]; then
+    printf '%s\n' 'E_PROBE：网关验证服务未能完成操作，请保留错误码与 fnOS 版本。' > "$TRIM_TEMP_LOGFILE"
+fi
+exit "$result"

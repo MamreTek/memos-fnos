@@ -1,0 +1,14 @@
+Unmodified Memos 26.11.0 official Linux amd64 and ARM64 release binaries are
+bundled solely to run disposable local authentication contract tests.
+
+Source: https://github.com/usememos/memos/tree/b40d8a7b573774c52b022c8d6537d6baf2129dc0
+Release: https://github.com/usememos/memos/releases/tag/26.11.0
+License: MEMOS-LICENSE (MIT), from the pinned source commit.
+
+Archive SHA-256:
+amd64 38b81c2bd1859555f4f7f277756541fd1ca332c94bbbee443626ace42d7b4061
+arm64 1575ed41ce1f668a2e70b50f73c95d2f1b04605db83d4529b8914358b394145e
+
+The test package is independent of the installed Memos application. It uses
+random test credentials and private temporary data, never NAS passwords or
+existing notes. Passing these tests does not implement NAS-to-Memos SSO.

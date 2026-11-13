@@ -1,0 +1,5 @@
+{
+  "defaults": {"run-as": "package"},
+  "username": "memos-sso-probe",
+  "groupname": "memos-sso-probe"
+}

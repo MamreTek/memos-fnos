@@ -51,3 +51,7 @@ CI 对 amd64 和 QEMU 模拟的 arm64 执行真实镜像集成测试，并生成
 - [项目约定](docs/project-decisions.md)
 - [第三方资产与许可证](docs/third-party.md)
 - [REQ-001 / Issue #1](https://github.com/cedarot/fn-apps/issues/1)
+
+## 飞牛网页登录接入（开发中）
+
+[Issue #3](https://github.com/cedarot/fn-apps/issues/3) 先执行 REQ-002 的网关与原生会话技术验证；当前安装包尚未提供飞牛免重复登录。独立的[登录验证包 0.0.2](tests/fnos-gateway-probe/README.md)能在目标 NAS 的临时 Memos 实例中运行真实登录组件测试，JSON 的 `auth_checks.status` 应为 `passed`。它不改变正式 Memos 的账号、数据或 5230 端口。技术证据和未通过门槛见 [SSO 验证记录](docs/sso-feasibility.md)。

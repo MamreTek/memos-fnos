@@ -1,0 +1,15 @@
+appname=memos-sso-probe
+version=0.0.2
+display_name=Memos 登录验证
+desc=在临时 Memos 实例验证授权码、登录回调与原生会话；仅供测试，不连接现有笔记，不是日常免登录。
+platform=all
+source=thirdparty
+maintainer=cedarot
+maintainer_url=https://github.com/cedarot/fn-apps
+distributor=cedarot
+distributor_url=https://github.com/cedarot/fn-apps
+desktop_uidir=ui
+desktop_applaunchname=memos-sso-probe.main
+os_min_version=1.1.3100
+ctl_stop=true
+changelog=新增真实 Memos 登录组件自检，显示 auth_checks 结果；保留 0.0.1 身份指纹，正式 Memos 不变。

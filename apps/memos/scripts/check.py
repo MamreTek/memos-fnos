@@ -31,7 +31,8 @@ def check():
     assert privilege['username'] == privilege['groupname'] == 'memos-fnos'
     assert privilege['join-groups'] == ['docker'], 'Host lifecycle hooks require declared Docker access'
     resources = load(PKG / 'config/resource')
-    assert resources['data-share']['shares'] == [{'name': 'memos-fnos'}]
+    assert resources['data-share']['shares'] == [{'name': name} for name in
+                                                ('memos-fnos', 'memos-fnos/data', 'memos-fnos/backups')]
     assert resources['docker-project']['projects'] == [{'name': 'memos-fnos', 'path': 'docker'}]
     ui = load(PKG / 'app/ui/config')['.url'][manifest['desktop_applaunchname']]
     assert (ui['type'], ui['port'], ui['url']) == ('url', '5230', '/')
@@ -48,6 +49,7 @@ def check():
     assert service['user'] == '${TRIM_UID:?Missing app UID}:${TRIM_GID:?Missing app GID}'
     assert service['read_only'] and service['cap_drop'] == ['ALL']
     assert len(service['volumes']) == 1
+    assert service['volumes'][0]['source'] == '/var/apps/memos-fnos/shares/memos-fnos/data'
     assert service['volumes'][0]['target'] == '/var/opt/memos'
     assert service['volumes'][0]['bind']['create_host_path'] is False
     for wizard in (PKG / 'wizard').iterdir():

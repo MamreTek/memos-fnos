@@ -14,7 +14,7 @@
       "volumes": [
         {
           "type": "bind",
-          "source": "${TRIM_DATA_SHARE_PATHS:?Missing application share}/data",
+          "source": "/var/apps/memos-fnos/shares/memos-fnos/data",
           "target": "/var/opt/memos",
           "bind": {"create_host_path": false}
         }

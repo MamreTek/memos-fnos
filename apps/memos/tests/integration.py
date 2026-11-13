@@ -43,19 +43,38 @@ def main():
     with tempfile.TemporaryDirectory(prefix='memos-container-') as temporary:
         base = pathlib.Path(temporary)
         share = base / 'memos-fnos'
-        share.mkdir()
-        env = dict(os.environ, TRIM_DATA_SHARE_PATHS=str(share), TRIM_UID=str(os.getuid()), TRIM_GID=str(os.getgid()),
-                   TRIM_SERVICE_PORT='5230', TRIM_APPVER='0.1.2', TRIM_TEMP_LOGFILE=str(base / 'lifecycle-error'))
+        # Model fnOS data-share creation before Docker resources are applied.
+        resources = json.loads((ROOT / 'packaging/config/resource').read_text())
+        shared_paths = [base / item['name'] for item in resources['data-share']['shares']]
+        for path in shared_paths:
+            path.mkdir(mode=0o700, parents=True, exist_ok=True)
+        env = dict(os.environ, TRIM_DATA_SHARE_PATHS=':'.join(map(str, shared_paths)), TRIM_UID=str(os.getuid()), TRIM_GID=str(os.getgid()),
+                   TRIM_SERVICE_PORT='5230', TRIM_APPVER='0.1.3', TRIM_TEMP_LOGFILE=str(base / 'lifecycle-error'))
         assert os.getuid() != 0, 'Run this test as a non-root user with Docker access'
         hook = lambda name, *args, **kw: run(['bash', str(ROOT / 'packaging/cmd' / name), *args], env=env, **kw)
         hook('install_init')
-        hook('install_callback')
-        override = {'services': {'memos': {'labels': {'io.mamre.memos-fnos.test-id': test_id}}}}
+        # Reproduce the official shared-link layout under a temporary platform root.
+        # Only the host path prefix is mapped; no actual fnOS installation is emulated.
+        platform_root = base / 'platform'
+        link = platform_root / 'var/apps/memos-fnos/shares/memos-fnos'
+        link.parent.mkdir(parents=True)
+        link.symlink_to(share, target_is_directory=True)
+        source = json.loads((ROOT / 'packaging/app/docker/docker-compose.yaml').read_text())
+        bind = dict(source['services']['memos']['volumes'][0])
+        assert bind['source'] == '/var/apps/memos-fnos/shares/memos-fnos/data'
+        bind['source'] = str(platform_root / bind['source'].lstrip('/'))
+        assert pathlib.Path(bind['source']).resolve() == share / 'data'
+        override = {'services': {'memos': {'labels': {'io.mamre.memos-fnos.test-id': test_id}, 'volumes': [bind]}}}
         if os.environ.get('MEMOS_TEST_PLATFORM'):
             override['services']['memos']['platform'] = os.environ['MEMOS_TEST_PLATFORM']
         override_file = base / 'override.json'
         override_file.write_text(json.dumps(override))
         compose = ['docker', 'compose', '-p', 'memos-fnos', '-f', str(ROOT / 'packaging/app/docker/docker-compose.yaml'), '-f', str(override_file)]
+        rendered = json.loads(run(compose + ['config', '--format', 'json'], env=env).stdout)['services']['memos']
+        assert len(rendered['volumes']) == 1
+        assert rendered['volumes'][0]['source'] == bind['source']
+        # Compose omits false values when rendering the bind options.
+        assert rendered['volumes'][0]['bind'].get('create_host_path', False) is False
 
         def start():
             result = run(compose + ['up', '-d', '--wait', '--wait-timeout', '180'], env=env, check=False)
@@ -76,7 +95,11 @@ def main():
                 run(compose + ['down'], env=env)
 
         try:
+            # The container must start from declared resources, before this callback.
             start()
+            assert any((share / 'data').iterdir()), 'Memos did not write its database before install_callback'
+            hook('install_callback')
+            print('PASS: declared shared directories -> healthy Memos -> install_callback')
             uid = run(['docker', 'exec', NAME, 'id', '-u']).stdout.strip()
             assert uid == env['TRIM_UID'] and uid != '0'
             assert hook('upgrade_init', check=False).returncode == 1, 'Live backup was accepted'

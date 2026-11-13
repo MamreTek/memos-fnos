@@ -1,4 +1,5 @@
 import fcntl
+import itertools
 import os
 import pathlib
 import socket
@@ -42,7 +43,7 @@ class Lifecycle(unittest.TestCase):
         fake.chmod(0o755)
         self.env = dict(os.environ, PATH=str(self.bin) + ':' + os.environ['PATH'],
                         TRIM_DATA_SHARE_PATHS=str(self.share), TRIM_UID=str(os.getuid()),
-                        TRIM_GID=str(os.getgid()), TRIM_APPVER='0.1.2',
+                        TRIM_GID=str(os.getgid()), TRIM_APPVER='0.1.3',
                         TRIM_TEMP_LOGFILE=str(self.base / 'error.log'))
         self.env.pop('DAEMON_DOWN', None)
         self.env.pop('RECORD', None)
@@ -76,6 +77,36 @@ class Lifecycle(unittest.TestCase):
         self.run_hook('install_callback', code=1, TRIM_UID='0')
         self.assertFalse(marker.exists())
         self.assertFalse((self.share / 'data').exists())
+
+    def test_declared_subshares_resolve_one_root_and_preserve_existing_data(self):
+        data, backups = self.share / 'data', self.share / 'backups'
+        data.mkdir(mode=0o750)
+        backups.mkdir(mode=0o700)
+        note = data / 'existing.txt'
+        note.write_text('keep existing data')
+        for paths in itertools.permutations([self.share, data, backups]):
+            with self.subTest(paths=paths):
+                self.run_hook('install_callback', TRIM_DATA_SHARE_PATHS=':'.join(map(str, paths)))
+                self.assertEqual(note.read_text(), 'keep existing data')
+                self.assertEqual(data.stat().st_mode & 0o777, 0o750)
+
+    def test_share_list_rejects_duplicates_unknown_and_cross_root_paths(self):
+        data, backups = self.share / 'data', self.share / 'backups'
+        data.mkdir()
+        backups.mkdir()
+        outside = self.base / 'outside'
+        outside.mkdir()
+        other = outside / 'memos-fnos'
+        other.mkdir()
+        for paths in [(self.share, self.share), (self.share, str(self.share) + '/.'),
+                      (self.share, outside), (self.share, other), (data, backups)]:
+            with self.subTest(paths=paths):
+                self.run_hook('install_callback', code=1, TRIM_DATA_SHARE_PATHS=':'.join(map(str, paths)))
+        for value in [f':{self.share}', f'{self.share}:', f'{self.share}::{data}']:
+            self.run_hook('install_callback', code=1, TRIM_DATA_SHARE_PATHS=value)
+        self.assertEqual(list(data.iterdir()), [])
+        self.assertEqual(list(backups.iterdir()), [])
+        self.assertEqual(list(other.iterdir()), [])
 
     def test_symlink_does_not_redirect_data_or_backup(self):
         outside = self.base / 'outside'

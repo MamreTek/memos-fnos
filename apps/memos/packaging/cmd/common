@@ -69,12 +69,35 @@ require_stopped() {
 
 validate_share() {
     local supplied=${TRIM_DATA_SHARE_PATHS:-}
-    [[ "$supplied" == /* && "$supplied" != *:* && "$supplied" != *$'\n'* ]] ||
-        fail '应用共享路径无效；需要一个绝对路径，不能包含多个共享目录。'
-    SHARE=$(realpath -e -- "$supplied") || fail '应用共享目录不存在。'
-    [[ -d "$SHARE" && "${SHARE##*/}" == memos-fnos ]] || fail '共享目录必须是本应用的 memos-fnos 目录。'
+    [[ -n "$supplied" && "$supplied" != *$'\n'* && "$supplied" != :* && "$supplied" != *: && "$supplied" != *::* ]] ||
+        fail '应用共享路径列表无效；不能包含空项或换行。'
+    local path resolved previous
+    local -a share_paths canonical_paths=()
+    IFS=: read -r -a share_paths <<< "$supplied"
+    (( ${#share_paths[@]} <= 3 )) || fail '应用共享路径列表包含未声明的目录。'
+    SHARE=
+    for path in "${share_paths[@]}"; do
+        [[ "$path" == /* ]] || fail '应用共享路径必须是绝对路径。'
+        resolved=$(realpath -e -- "$path") || fail '应用共享目录不存在。'
+        [[ -d "$resolved" ]] || fail '应用共享路径必须是目录。'
+        for previous in "${canonical_paths[@]}"; do
+            [[ "$previous" != "$resolved" ]] || fail '应用共享路径列表包含重复目录。'
+        done
+        canonical_paths+=("$resolved")
+        if [[ "${resolved##*/}" == memos-fnos ]]; then
+            [[ -z "$SHARE" ]] || fail '应用共享路径列表包含多个根目录。'
+            SHARE=$resolved
+        fi
+    done
+    [[ -n "$SHARE" ]] || fail '共享路径列表必须包含本应用的 memos-fnos 根目录。'
     [[ ! -L "$SHARE/data" && ! -L "$SHARE/backups" && ! -L "$SHARE/.lifecycle.lock" ]] ||
         fail '数据、备份或锁路径不能是符号链接。'
+    for resolved in "${canonical_paths[@]}"; do
+        case "$resolved" in
+            "$SHARE"|"$SHARE/data"|"$SHARE/backups") ;;
+            *) fail '共享路径列表包含本应用范围以外的目录。' ;;
+        esac
+    done
     [[ -w "$SHARE" && -x "$SHARE" ]] || fail '应用共享目录不可写，请检查应用 ACL 授权。'
 }
 

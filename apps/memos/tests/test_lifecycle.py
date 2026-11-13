@@ -14,7 +14,10 @@ IMAGE = 'neosmemo/memos:26.11.0@sha256:087e7dc6b76b31fcd1107a5767398b2a310ced209
 FAKE_DOCKER = '''#!/usr/bin/env python3
 import os,sys
 action=sys.argv[1]
-if os.environ.get('DAEMON_DOWN'): sys.exit(1)
+if os.environ.get('DAEMON_DOWN'): sys.exit('Cannot connect to the Docker daemon. Is the docker daemon running?')
+if action=='info' and os.environ.get('INFO_ERROR'):
+    print(os.environ['INFO_ERROR'], file=sys.stderr)
+    sys.exit(int(os.environ.get('INFO_EXIT', '1')))
 if action=='info': print('28.4.0')
 elif action=='inspect':
     record=os.environ.get('RECORD','')
@@ -39,10 +42,12 @@ class Lifecycle(unittest.TestCase):
         fake.chmod(0o755)
         self.env = dict(os.environ, PATH=str(self.bin) + ':' + os.environ['PATH'],
                         TRIM_DATA_SHARE_PATHS=str(self.share), TRIM_UID=str(os.getuid()),
-                        TRIM_GID=str(os.getgid()), TRIM_APPVER='0.1.1',
+                        TRIM_GID=str(os.getgid()), TRIM_APPVER='0.1.2',
                         TRIM_TEMP_LOGFILE=str(self.base / 'error.log'))
         self.env.pop('DAEMON_DOWN', None)
         self.env.pop('RECORD', None)
+        self.env.pop('INFO_ERROR', None)
+        self.env.pop('INFO_EXIT', None)
 
     def run_hook(self, hook, *args, code=0, **changes):
         result = subprocess.run(['bash', str(CMD / hook), *args], env=dict(self.env, **changes),
@@ -113,6 +118,28 @@ class Lifecycle(unittest.TestCase):
             self.assertIn('5230', result.stderr)
         finally:
             listener.close()
+
+    def test_docker_failures_are_distinct_and_do_not_expose_raw_details(self):
+        private_detail = 'private-context-do-not-log'
+        cases = [
+            ('permission denied while connecting to the Docker daemon', '1', 'E_DOCKER_PERMISSION'),
+            ('operation not permitted', '1', 'E_DOCKER_PERMISSION'),
+            ('Cannot connect to the Docker daemon. Is the docker daemon running?', '1', 'E_DOCKER_UNAVAILABLE'),
+            ('connection refused', '1', 'E_DOCKER_UNAVAILABLE'),
+            ('waiting', '124', 'E_DOCKER_TIMEOUT'),
+            ('context deadline exceeded', '1', 'E_DOCKER_TIMEOUT'),
+            ('unsupported Docker API', '1', 'E_DOCKER_CHECK'),
+        ]
+        for detail, exit_code, error_code in cases:
+            with self.subTest(error_code=error_code, detail=detail):
+                result = self.run_hook('main', 'status', code=1,
+                                       INFO_ERROR=f'{detail}: {private_detail}', INFO_EXIT=exit_code)
+                logged = (self.base / 'error.log').read_text()
+                self.assertIn(error_code, result.stderr)
+                self.assertIn(error_code, logged)
+                self.assertNotIn(private_detail, result.stdout + result.stderr + logged)
+                self.assertEqual(result.stderr.strip(), logged.strip())
+                self.assertFalse((self.share / 'data').exists())
 
     def test_live_or_locked_backup_aborts(self):
         self.run_hook('install_callback')

@@ -28,6 +28,8 @@ def check():
     assert 'install_dep_apps' not in manifest, 'Unexpected ordinary app dependency; use the Docker project resource'
     privilege = load(PKG / 'config/privilege')
     assert privilege['defaults']['run-as'] == 'package'
+    assert privilege['username'] == privilege['groupname'] == 'memos-fnos'
+    assert privilege['join-groups'] == ['docker'], 'Host lifecycle hooks require declared Docker access'
     resources = load(PKG / 'config/resource')
     assert resources['data-share']['shares'] == [{'name': 'memos-fnos'}]
     assert resources['docker-project']['projects'] == [{'name': 'memos-fnos', 'path': 'docker'}]

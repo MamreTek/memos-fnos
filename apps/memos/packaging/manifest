@@ -1,5 +1,5 @@
 appname=memos-fnos
-version=0.1.1
+version=0.1.2
 display_name=Memos
 desc=Memos 自托管笔记（候选包），支持 Markdown、附件及手机同步；fnOS 实机兼容性待验。
 platform=all
@@ -14,4 +14,4 @@ service_port=5230
 checkport=true
 ctl_stop=true
 disable_authorization_path=true
-changelog=修正 Docker 依赖声明：沿用官方 docker-project 资源和现有 Docker，保留官网图标及数据路径。
+changelog=补充应用用户的 Docker 访问组声明，并区分权限、连接和超时错误；保留现有数据身份与官网图标。

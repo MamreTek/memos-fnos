@@ -19,8 +19,25 @@ require_tools() {
 }
 
 require_docker() {
-    timeout 10 docker info --format '{{.ServerVersion}}' >/dev/null 2>&1 ||
-        fail 'Docker 不可用或无访问权限，请在应用中心启用 Docker 后重试。'
+    local docker_detail docker_status
+    if docker_detail=$(LC_ALL=C timeout 10 docker info --format '{{.ServerVersion}}' 2>&1); then
+        return 0
+    else
+        docker_status=$?
+    fi
+    # Classify without exposing endpoint/context details from Docker stderr.
+    case "$docker_status" in
+        124|137) fail '等待 Docker 响应超时 [E_DOCKER_TIMEOUT]；请检查 Docker 服务状态后重试。' ;;
+    esac
+    case "${docker_detail,,}" in
+        *'permission denied'*|*'access is denied'*|*'operation not permitted'*)
+            fail 'Docker 访问被拒绝 [E_DOCKER_PERMISSION]；请核对应用用户的 docker 附加组授权。' ;;
+        *'cannot connect to the docker daemon'*|*'is the docker daemon running'*|*'connection refused'*)
+            fail '无法连接 Docker 服务 [E_DOCKER_UNAVAILABLE]；请在应用中心确认 Docker 正在运行。' ;;
+        *'context deadline exceeded'*|*'i/o timeout'*)
+            fail '等待 Docker 响应超时 [E_DOCKER_TIMEOUT]；请检查 Docker 服务状态后重试。' ;;
+        *) fail "无法完成 Docker 检查 [E_DOCKER_CHECK]（退出码 $docker_status）；请提供错误码和 fnOS 版本以便排查。" ;;
+    esac
 }
 
 container_record() {

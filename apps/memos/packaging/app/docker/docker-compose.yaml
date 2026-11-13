@@ -1,0 +1,30 @@
+{
+  "services": {
+    "memos": {
+      "image": "neosmemo/memos:26.11.0@sha256:087e7dc6b76b31fcd1107a5767398b2a310ced209adb791efd8760c745dc8034",
+      "container_name": "memos-fnos-memos",
+      "user": "${TRIM_UID:?Missing app UID}:${TRIM_GID:?Missing app GID}",
+      "restart": "unless-stopped",
+      "stop_grace_period": "30s",
+      "read_only": true,
+      "cap_drop": ["ALL"],
+      "security_opt": ["no-new-privileges:true"],
+      "tmpfs": ["/tmp:rw,noexec,nosuid,nodev,size=64m,mode=1777"],
+      "ports": ["${TRIM_SERVICE_PORT:?Missing app port}:5230"],
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "/var/apps/memos-fnos/shares/memos-fnos/data",
+          "target": "/var/opt/memos",
+          "bind": {"create_host_path": false}
+        }
+      ],
+      "environment": {"MEMOS_PORT": "5230", "MEMOS_DRIVER": "sqlite", "TZ": "Asia/Shanghai"},
+      "healthcheck": {
+        "test": ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:5230/healthz"],
+        "interval": "10s", "timeout": "5s", "start_period": "30s", "retries": 6
+      },
+      "logging": {"driver": "json-file", "options": {"max-size": "10m", "max-file": "3"}}
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "project": "Moe Memos",
+  "website": "https://memos.moe/",
+  "website_asset": "https://memos.moe/memos.png",
+  "repository": "https://github.com/mudkipme/MoeMemos",
+  "commit": "b53f6ba377c29db1af63cf0d014f50592b3a5be2",
+  "upstream_path": "MoeMemos/Assets.xcassets/AppIcon.appiconset/App_store_1024_1x.png",
+  "downloaded_at": "2026-11-12",
+  "source_file": "moe-memos-icon.png",
+  "source_sha256": "0e089ecdefc0086d1f60f39b6185a0cfb4e3a13a13e8e76a36d056069f1d7865",
+  "source_size": [
+    1024,
+    1024
+  ],
+  "license": "MPL-2.0",
+  "license_file": "../packaging/app/MOE-MEMOS-LICENSE",
+  "transformation": "Pillow 12.2.0: Image.resize((size, size), Image.Resampling.LANCZOS); PNG, original RGBA mode and background preserved",
+  "outputs_sha256": {
+    "packaging/ICON.PNG": "68f04996232df6038ba20ed0d5805121e53f55fb70059506e24e400f205291ad",
+    "packaging/app/ui/images/icon_64.png": "68f04996232df6038ba20ed0d5805121e53f55fb70059506e24e400f205291ad",
+    "packaging/ICON_256.PNG": "17d4137ca60db0a18d628cc565cf09e01e829a6a6d56c79252bce971b2588e68",
+    "packaging/app/ui/images/icon_256.png": "17d4137ca60db0a18d628cc565cf09e01e829a6a6d56c79252bce971b2588e68"
+  }
+}

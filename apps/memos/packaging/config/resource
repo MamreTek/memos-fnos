@@ -1,0 +1,8 @@
+{
+  "docker-project": {"projects": [{"name": "memos-fnos", "path": "docker"}]},
+  "data-share": {"shares": [
+    {"name": "memos-fnos"},
+    {"name": "memos-fnos/data"},
+    {"name": "memos-fnos/backups"}
+  ]}
+}

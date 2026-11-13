@@ -28,6 +28,6 @@ MEMOS_BINARY=/absolute/path/to/verified/memos make APP=memos auth-integration
 
 ARM64 已交叉编译授权码核心、浏览器事务和原生会话客户端的测试二进制，尚未运行。上述接口测试不代替真实网关/浏览器完整链路、TLS Cookie、容器双架构、账号删除重建和备份恢复验收；auth-browser-test 仍待完整流程实现。技术记录见 [SSO 验证记录](../docs/sso-feasibility.md)。
 
-独立的 [memos-sso-probe 0.0.2](../tests/fnos-gateway-probe/README.md) 已打包四组实际测试程序和两种架构的固定 Memos 二进制，可在目标 NAS 用临时实例运行并返回 `auth_checks`。本机从最终 FPK 验证 amd64 全部通过；它不是对正式 Memos 启用 SSO 的安装包。
+独立的 [memos-sso-probe 0.0.2](../tests/fnos-gateway-probe/README.md) 已打包四组实际测试程序和两种架构的固定 Memos 二进制，可在目标 NAS 用临时实例运行并返回 `auth_checks`。本机从最终 FPK 验证 amd64 全部通过，用户随后也回传 NAS amd64 四组 passed 的 JSON；该实机报告仅覆盖组件自检，不代表正式 Memos 的 NAS SSO 入口或删除重建隔离已完成。
 
 协议依据：[RFC 6749 客户端认证](https://www.rfc-editor.org/rfc/rfc6749#section-2.3.1)、[RFC 7636 S256 校验](https://www.rfc-editor.org/rfc/rfc7636#section-4.6)。当前仅是这些接口契约的实现片段，不宣称完整 OAuth/OIDC 服务已交付。

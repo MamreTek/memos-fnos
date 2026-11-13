@@ -64,7 +64,9 @@ MEMOS_BINARY=/absolute/path/to/verified/memos make APP=memos auth-feasibility
 
 用户明确要求阶段性提交和新包测试后，新增 memos-sso-probe 0.0.2。它随包附上固定官方 Memos 二进制与四组静态 Go 测试程序；在 NAS 专用应用用户下使用回环临时端口和私有临时数据，启动后执行 endpoint、memosclient、browserflow、oauthbridge，自检结果在网关 JSON 的 `auth_checks` 返回。安装命名空间/UID 指纹保持 0.0.1 兼容，不连接正式 Memos，不把真实 NAS 身份绑定到笔记账号。原生临时 Memos 会话使用随机密码，测试结束或停止时清理自有进程/数据；原始测试日志仅在私有 0600 文件中。
 
-本机最终 FPK 的 amd64 自检、启停、私有权限及临时数据清理通过；四组 cases 均为 passed。包 SHA-256 `0f5112825f844b24391a5a5e56f7e4feb48835378e6d62cd850f9edc040d45c5`，官方 fnpack 1.2.3 和全部双架构 ELF/内外载荷校验通过。ARM64 未运行，0.0.2 尚无 fnOS 实机结果。此交付允许 issue/3 的阶段性提交和草稿 PR，完整 SSO 仍为开发中，不交付可合并的完成声明。
+本机最终 FPK 的 amd64 自检、启停、私有权限及临时数据清理通过；四组 cases 均为 passed。包 SHA-256 `0f5112825f844b24391a5a5e56f7e4feb48835378e6d62cd850f9edc040d45c5`，官方 fnpack 1.2.3 和全部双架构 ELF/内外载荷校验通过。ARM64 未运行。此交付允许 issue/3 的阶段性提交和草稿 PR，完整 SSO 仍为开发中，不交付可合并的完成声明。
+
+用户随后回传实际 NAS 的 0.0.2 / amd64 JSON：`auth_checks.status=passed`，browserflow、endpoint、memosclient、oauthbridge 四组均 passed，Memos 版本 26.11.0，网关身份头有效、普通用户标记 false。与 0.0.1 私有证据逐项比较，安装、UID、用户名三项指纹全部不变；公开文档不保存具体指纹。该结果是用户提供的实机组件自检证据，系统版本沿用此前用户报告的 fnOS 1.2.1010，当前 JSON 未附构建号，代理未直接采集或核对设备上的包校验。它不验证完整浏览器/代理入口、删除重建隔离或 ARM64；`memos_sso_implemented=false` 仍是准确状态。
 
 1. 正向网关已有用户回传证据，管理员切换已有用户反馈，无会话的伪造 Header 检查通过。仍需确认独立浏览器打开方式、退出后刷新及完整登录链路。浏览器工具仍读取失败，实机证据按用户回传记录，不存密码、原始 UID 或用户名。
 2. 取得平台可靠主体及账号生命周期契约，自动防止删除/重建后旧绑定继承，并满足仅管理员原生恢复的删除要求。用户已拒绝先手动解绑，不能继续列为待批准的兼容方案；不能用“首次测试未复用”、轮询或 Memos 临时成员归档替代这个保证。

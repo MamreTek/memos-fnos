@@ -14,8 +14,8 @@ appcenter-cli list
 
 - 旧 Docker 依赖声明：0.1.0 含未经核实的 `install_dep_apps=docker`，0.1.1 起已移除并沿用 `docker-project` 资源。用户提供的原文「Docker 不可用或无访问权限」实际来自生命周期检查；不能仅凭选包后立即提示，就把它判断为 manifest 依赖问题。
 - Docker 权限：0.1.2 通过飞牛官方 `join-groups` 声明为现有 `memos-fnos` 应用用户添加 `docker` 附加组，保持原用户名及主组，供宿主生命周期执行 Docker 管理检查。该组授予 Docker 管理能力；Memos 容器仍按非 root UID/GID 运行，未配置该附加组或 Docker socket 挂载。平台是否在安装期落实此声明仍需目标设备验证。
-- `E_DOCKER_PERMISSION`：Docker 访问被拒绝。若应用中心 Docker 已运行，需核对应用用户的附加组及安装期执行身份。可在 NAS 终端只读执行 `id memos-fnos` 和 `stat -c '%U:%G %a' /var/run/docker.sock`，记录包版本、fnOS 精确版本和结果以便排查；账号不存在也应如实记录。由包的声明授权，包内不运行 sudo/usermod 或修改 socket 模式。
-- `E_DOCKER_UNAVAILABLE`：无法连接 Docker 服务；在应用中心确认 Docker 正在运行。
+- `E_DOCKER_PERMISSION`：Docker 访问被拒绝。若飞牛桌面 Docker 能正常查看容器/镜像列表，需核对应用用户的附加组及安装期执行身份。可在 NAS 终端只读执行 `id memos-fnos` 和 `stat -c '%U:%G %a' /var/run/docker.sock`，记录包版本、fnOS 精确版本和结果以便排查；账号不存在也应如实记录。由包的声明授权，包内不运行 sudo/usermod 或修改 socket 模式。
+- `E_DOCKER_UNAVAILABLE`：无法连接 Docker 服务；从飞牛桌面打开 Docker 检查功能状态。
 - `E_DOCKER_TIMEOUT`：Docker 响应超时；检查 Docker 服务状态后重试。
 - `E_DOCKER_CHECK`：其他检查失败；提供错误码、退出码和 fnOS 精确版本。原始 Docker stderr 与连接上下文不回显到用户日志。
 - 「缺少系统工具：docker」：检查设备提供的 Docker CLI/PATH；包内脚本不安装独立守护进程。

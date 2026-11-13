@@ -18,6 +18,7 @@
 | 未登录 / 伪造 Header | 对实际网关发出不带 Cookie/Token、伪造 X-Trim-Userid/Username/Isadmin 的请求，HTTP 200 / text/plain 返回 invalid token，没有身份 JSON。该检查证明无会话的伪造头未获授权，不代表有效会话中的全部头覆盖行为已测 |
 | Go 授权码核心 | auth-test 的 race / vet 通过；覆盖 S256、精确回调、客户端认证、过期/重放/并发、错误不反射凭据和私有路由限制。真正跨监听器隔离尚未实现 |
 | 浏览器登录事务 / 原生客户端 | 新增 state + 独立 HttpOnly Cookie + 服务端 PKCE 事务，最多 1024 条、5 分钟、并发一次性消费；跨浏览器/重复 Cookie/重复参数/过期均拒绝。原生 Connect 客户端检查当前用户及刷新 Cookie、拒绝重定向/超限响应/非法属性，敏感错误脱敏。race / vet 通过；未发布 HTTP 登录路由或浏览器页面 |
+| Unix 网关授权 Handler | 新增 `internal/gateway`，在真实 Unix 连接上下文中接受固定路径/单值身份头和精确授权参数，TCP 伪造头拒绝；必须注入稳定主体 Resolver，缺失或失败不签发授权码，不回显身份/内部错误。真实本地 Unix/TCP 的 race / vet 测试通过；尚未接线到应用服务，不证明平台账号生命周期已解决 |
 | 新组件对接真实 Memos | HTTP 与 HTTPS 部署上下文的真实 Go 授权码核心 → 浏览器事务 → 原生 Connect 客户端 → Memos 26.11.0 通过；回调重放拒绝、普通成员、原生当前用户确认、刷新 Cookie 轮换及退出后拒绝刷新通过。NAS 主体为 fixture；未执行浏览器 DOM、TLS、代理或 NAS 跳转。新组件 ARM64 测试二进制已交叉编译，未运行 |
 | 核心对接真实 Memos | auth-integration 通过：实际 Go token/userinfo Handler 与官方 26.11.0 release 完成交换、不同普通用户/重复映射、私有笔记隔离、原生刷新/退出及保留密码登录；ARM64 测试二进制交叉编译通过，未运行 |
 | 原生管理员恢复 | 扩展 auth-integration 通过：管理员重新密码登录后读取已知私人笔记并导出临时归档成员的保留笔记；匿名导出 401，另一普通成员导出/读笔记 403，导出不含另一成员私有内容，归档成员旧访问 Token 401。原生成员界面已有导出入口；未在 NAS 删除真实账号，未验证 fnOS 删除识别或删除后凭据自动撤销 |

@@ -1,6 +1,6 @@
 # Memos fnOS 认证桥接（实现中）
 
-当前实现包括 `internal/oauthbridge` 授权码核心、`internal/browserflow` 浏览器登录事务，以及 `internal/memosclient` 原生 Connect 会话客户端。它们尚未组成可运行的完整认证服务，也未接入现有 `.fpk`。保留 Memos 26.11.0、原生 linked identity 与原生会话的接口契约；正式 0.1.3 包未改变。
+当前实现包括 `internal/oauthbridge` 授权码核心、`internal/browserflow` 浏览器登录事务、`internal/memosclient` 原生 Connect 会话客户端，以及 `internal/gateway` 的 Unix Socket 授权 Handler。它们尚未组成可运行的完整认证服务，也未接入现有 `.fpk`。保留 Memos 26.11.0、原生 linked identity 与原生会话的接口契约；正式 0.1.3 包未改变。
 
 已实现并测试：
 
@@ -15,7 +15,9 @@
 - 新浏览器事务与原生 Connect 客户端也通过真实服务验证：使用测试主体串联真实 Go 授权码核心和 Memos，覆盖 HTTP、HTTPS 部署上下文对应的 Cookie、回调重放拒绝、刷新轮换和退出后拒绝刷新。HTTPS 上下文由配置控制；这不是浏览器 TLS 或真实 NAS 网关验收。
 - 管理员重新通过原生密码登录后，可按上游权限读取已知私人笔记、导出保留成员的笔记；临时 Memos 成员归档后这些路径仍可用，普通成员和匿名导出被拒绝，导出不包含另一成员的私人笔记，归档成员的旧访问 Token 被拒绝。仅验证临时 Memos 归档，不代表已识别飞牛删除事件或解决 UID 复用。
 
-尚未实现：真实网关授权路由、可靠 NAS 主体映射及删除识别、浏览器启动/回调 HTTP 路由和页面交接、5230 代理与多标签页保护、配置持久化/备份、Compose 及安装向导接线。用户已拒绝删除前手动解绑的方案；不能将删除处理转嫁给用户。Authorize 只能由后续受信网关层在验证稳定身份后调用，不能把原始 UID/用户名直接当成不可复用主体。新事务完成后仅向服务端调用方返回原生会话，不发布 Cookie 或 HTML；后续必须先完成账号切换保护，不能直接将这个组件暴露为登录接口。当前代码不会监听端口或自动授予 NAS 用户 Memos 访问。
+新增 `internal/gateway`：专用 HTTP Server 必须安装 `gateway.ConnContext`，只有真实 Unix 连接会获得身份入口上下文；误接到 TCP 时即使伪造全部身份头也拒绝。仅接受固定启动/授权路径和单值 Header，严格检查授权参数、精确回调及 S256，错误不反射身份或内部诊断。必须显式提供稳定账号生命周期 Resolver；没有默认 UID/用户名映射，Resolver 不可用时返回 `E_IDENTITY_LIFECYCLE` 且不签发授权码。本机真实 Unix/TCP 监听器的 race 测试通过；尚未接到 fnOS 运行服务。
+
+尚未实现：可靠 NAS 主体映射及删除识别、网关运行服务与套接字接线、浏览器启动/回调 HTTP 路由和页面交接、5230 代理与多标签页保护、配置持久化/备份、Compose 及安装向导接线。用户已拒绝删除前手动解绑的方案；不能将删除处理转嫁给用户。Authorize 只能由受信网关层在验证稳定身份后调用，不能把原始 UID/用户名直接当成不可复用主体。新事务完成后仅向服务端调用方返回原生会话，不发布 Cookie 或 HTML；后续必须先完成账号切换保护，不能直接将这个组件暴露为登录接口。当前代码不会监听端口或自动授予 NAS 用户 Memos 访问。
 
 从仓库根目录验证：
 

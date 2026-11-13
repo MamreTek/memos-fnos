@@ -1,5 +1,5 @@
 {
-  "package_version": "0.1.0",
+  "package_version": "0.1.1",
   "version": "26.11.0",
   "image": "neosmemo/memos:26.11.0@sha256:087e7dc6b76b31fcd1107a5767398b2a310ced209adb791efd8760c745dc8034",
   "index_digest": "sha256:087e7dc6b76b31fcd1107a5767398b2a310ced209adb791efd8760c745dc8034",

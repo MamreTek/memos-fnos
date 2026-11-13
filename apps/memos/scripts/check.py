@@ -23,7 +23,9 @@ def check():
     assert manifest['platform'] == 'all'
     assert manifest['ctl_stop'] == manifest['checkport'] == 'true'
     assert manifest['service_port'] == '5230'
-    assert manifest['install_dep_apps'] == 'docker'
+    # Docker is declared below as a docker-project resource, as in the official
+    # Docker example/template; "docker" is not a verified app dependency ID.
+    assert 'install_dep_apps' not in manifest, 'Unexpected ordinary app dependency; use the Docker project resource'
     privilege = load(PKG / 'config/privilege')
     assert privilege['defaults']['run-as'] == 'package'
     resources = load(PKG / 'config/resource')

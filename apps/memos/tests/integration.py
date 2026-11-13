@@ -45,7 +45,7 @@ def main():
         share = base / 'memos-fnos'
         share.mkdir()
         env = dict(os.environ, TRIM_DATA_SHARE_PATHS=str(share), TRIM_UID=str(os.getuid()), TRIM_GID=str(os.getgid()),
-                   TRIM_SERVICE_PORT='5230', TRIM_APPVER='0.1.0', TRIM_TEMP_LOGFILE=str(base / 'lifecycle-error'))
+                   TRIM_SERVICE_PORT='5230', TRIM_APPVER='0.1.1', TRIM_TEMP_LOGFILE=str(base / 'lifecycle-error'))
         assert os.getuid() != 0, 'Run this test as a non-root user with Docker access'
         hook = lambda name, *args, **kw: run(['bash', str(ROOT / 'packaging/cmd' / name), *args], env=env, **kw)
         hook('install_init')

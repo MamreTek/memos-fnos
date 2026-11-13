@@ -12,7 +12,8 @@ docker inspect --format '{{json .State}}' memos-fnos-memos
 appcenter-cli list
 ```
 
-- Docker 不可用：在应用中心启动官方 Docker；包内脚本不会安装独立守护进程或修改 Docker 权限。
+- 选择 0.1.0 包后提示需要安装 Docker：旧包含未经核实的 `install_dep_apps=docker` 声明，可能在安装脚本运行前被当作普通应用依赖检查。保留现有 Docker，改用 0.1.1；新版依照官方示例使用 `docker-project` 资源。目标设备是否通过安装检查仍需复验。
+- Docker 不可用：若安装过程中出现「Docker 不可用或无访问权限」，这是脚本对实际守护进程的检查失败，需核对应用中心的 Docker 运行状态及应用用户访问权限；若出现「缺少系统工具：docker」，则需检查设备提供的 Docker CLI/PATH。记录完整错误、发生阶段及 fnOS 精确版本便于定位。包内脚本不会安装独立守护进程或修改 Docker 权限。
 - 拉取失败：检查 NAS 对 Docker Hub 的访问。固定引用包含 digest，不能改成未核实的镜像源或 rolling tag。
 - 端口占用：解决 TCP 5230 的占用后重试；首版不支持改端口，不会自动停止其他容器。
 - 目录不可写或 UID 不一致：核对共享目录授予应用用户的 ACL 与子目录所有者。不要用 `chmod 777` 或切换 root 掩盖问题；新装目录由应用用户创建，已有数据不会自动 chown。

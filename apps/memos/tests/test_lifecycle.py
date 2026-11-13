@@ -39,7 +39,7 @@ class Lifecycle(unittest.TestCase):
         fake.chmod(0o755)
         self.env = dict(os.environ, PATH=str(self.bin) + ':' + os.environ['PATH'],
                         TRIM_DATA_SHARE_PATHS=str(self.share), TRIM_UID=str(os.getuid()),
-                        TRIM_GID=str(os.getgid()), TRIM_APPVER='0.1.0',
+                        TRIM_GID=str(os.getgid()), TRIM_APPVER='0.1.1',
                         TRIM_TEMP_LOGFILE=str(self.base / 'error.log'))
         self.env.pop('DAEMON_DOWN', None)
         self.env.pop('RECORD', None)

@@ -4,16 +4,18 @@
 
 为飞牛 NAS 提供 Memos 的 Docker 应用包：应用中心启停和状态、桌面浏览器入口、笔记与附件持久化、升级前备份。
 
-**当前为 0.1.0 候选包，fnOS 实机兼容性尚未验收。** 一个 `platform=all` 安装包使用官方 amd64/arm64 镜像；ARM64 容器模拟测试不能代替 ARM64 fnOS 实机测试。
+**当前为 0.1.1 候选包，fnOS 实机兼容性尚未验收。** 一个 `platform=all` 安装包使用官方 amd64/arm64 镜像；ARM64 容器模拟测试不能代替 ARM64 fnOS 实机测试。
 
 ## 安装
 
-1. 在目标飞牛 NAS 安装并启动 Docker，确认 TCP `5230` 空闲。
-2. 从本项目 PR 的 CI 产物获取 `memos-fnos-0.1.0-all.fpk` 及同名 `.sha256`，验证校验和。
+1. 在目标飞牛 NAS 应用中心确认 Docker 已安装并启动，确认 TCP `5230` 空闲。
+2. 从本项目 PR 的 CI 产物获取 `memos-fnos-0.1.1-all.fpk` 及同名 `.sha256`，验证校验和。
 3. 在「应用中心 → 设置 → 手动安装」选择 `.fpk`。首次启动会拉取固定镜像，NAS 需要能访问 Docker Hub。
 4. 应用显示运行后，点击 Memos 桌面图标；或访问 `http://<NAS-IP>:5230`。创建首个管理员账号，再配置注册及笔记可见性。
 
 数据在飞牛文件管理的应用共享目录 `memos-fnos/data`，备份在 `memos-fnos/backups`。实际磁盘路径由系统提供，不限定存储卷。默认卸载保留数据；目标 fnOS 的共享目录保留行为仍待实机验证，卸载前请另存备份。
+
+0.1.1 移除了旧包未经核实的 `install_dep_apps=docker` 普通应用依赖，按官方示例保留 `docker-project` 资源及 Docker 实际可用性检查。若 0.1.0 提示已安装的 Docker 仍需安装，请改用 0.1.1 候选包；具体提示的判断方式见排错说明。
 
 ## 手机连接
 
@@ -34,7 +36,7 @@ make tools
 make package
 make integration
 cd dist
-sha256sum -c memos-fnos-0.1.0-all.fpk.sha256
+sha256sum -c memos-fnos-0.1.1-all.fpk.sha256
 ```
 
 Linux amd64 构建工具由 `make tools` 从飞牛官方下载并校验固定 SHA-256；其他开发平台可用 `make package FNPACK=/absolute/path/to/fnpack` 指定官方工具。

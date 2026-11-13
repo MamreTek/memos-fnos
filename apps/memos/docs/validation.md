@@ -32,4 +32,6 @@
 - 同步：记录笔记双向变更、附件和离线恢复同步结果。
 - 失败：镜像无法拉取、端口占用、目录无权限时显示清楚错误，不影响其他应用。
 
-最小 fnOS 版本未认证，因此候选 manifest 不填写未经测试的 `os_min_version`。正式发行前须根据上述结果设定兼容范围；没有填写该字段不表示支持所有旧系统。`install_dep_apps=docker` 也需在目标官方应用中心核验。
+最小 fnOS 版本未认证，因此候选 manifest 不填写未经测试的 `os_min_version`。正式发行前须根据上述结果设定兼容范围；没有填写该字段不表示支持所有旧系统。
+
+2026-11-13 收到用户反馈：Docker 已安装，0.1.0 安装仍提示安装 Docker。0.1.1 移除未经核实的 `install_dep_apps=docker` 声明，保留 `docker-project` 资源与 Docker CLI/守护进程检查。依据为[官方 Docker 案例](https://developer.fnnas.com/docs/examples/docker)和官方 fnpack 1.2.3 生成的 Docker 模板，二者均未声明该普通应用依赖。本地与容器 CI 可以验证元数据、保留的检查及运行行为；目标 fnOS 的安装依赖识别和应用用户 Docker 访问仍需实机复验，完整设备报错尚待补充。
